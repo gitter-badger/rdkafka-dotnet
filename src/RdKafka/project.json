@@ -2,6 +2,7 @@
     "version": "0.9.1-ci-*",
     "description": "C# Apache Kafka client",
     "authors": ["Andreas Heider"],
+    "tags": ["kafka", "rdkafka"],
 
     "dependencies": {
         "RdKafka.Internal.librdkafka-Darwin": {
@@ -16,12 +17,9 @@
 
     "frameworks": {
         "net451": { },
-        "dotnet5.4": {
+        "netstandard1.3": {
             "dependencies": {
-                "System.Console": "4.0.0-*",
-                "System.Linq": "4.0.0-*",
-                "System.Runtime": "4.0.21-*",
-                "System.Runtime.InteropServices": "4.0.21-*"
+                "NETStandard.Library": "1.0.0-*"
             }
         }
     },
@@ -32,9 +30,6 @@
     },
 
     "scripts": {
-        "postrestore": [
-            "dnu restore ../../tools/Copy.Librdkafka",
-            "dnx -p ../../tools/Copy.Librdkafka run"
-        ]
+        "postrestore": [ ]
     }
 }
