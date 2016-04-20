@@ -30,6 +30,8 @@
     },
 
     "scripts": {
-        "postrestore": [ ]
+        "precompile": [
+            "dotnet run -p ../../tools/Copy.Librdkafka"
+        ]
     }
 }

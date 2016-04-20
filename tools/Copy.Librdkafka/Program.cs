@@ -1,39 +1,22 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Linq;
 
 namespace Copy.Librdkafka
 {
     public class Program
     {
-        public void Main(string[] args)
+        public static int Main(string[] args)
         {
             try
             {
-                var packagesFolder = Environment.GetEnvironmentVariable("DNX_PACKAGES");
+                var packagesFolder = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
 
                 if (string.IsNullOrEmpty(packagesFolder))
                 {
-                    var dnxFolder = Environment.GetEnvironmentVariable("DNX_HOME") ??
-                                    Environment.GetEnvironmentVariable("DNX_USER_HOME") ??
-                                    Environment.GetEnvironmentVariable("DNX_GLOBAL_HOME");
-
-                    var firstCandidate = dnxFolder?.Split(';')
-                                                  ?.Select(path => Environment.ExpandEnvironmentVariables(path))
-                                                  ?.Where(path => Directory.Exists(path))
-                                                  ?.FirstOrDefault();
-
-                    if (string.IsNullOrEmpty(firstCandidate))
-                    {
-                        dnxFolder = Path.Combine(GetHome(), ".dnx");
-                    }
-                    else
-                    {
-                        dnxFolder = firstCandidate;
-                    }
-
-                    packagesFolder = Path.Combine(dnxFolder, "packages");
+                    packagesFolder = Path.Combine(GetHome(), ".nuget", "packages");
                 }
 
                 packagesFolder = Environment.ExpandEnvironmentVariables(packagesFolder);
@@ -52,6 +35,8 @@ namespace Copy.Librdkafka
                         }
                     }
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -60,14 +45,28 @@ namespace Copy.Librdkafka
             }
         }
 
-        private string GetHome()
+        private static string GetHome()
         {
-#if DNX451
+#if NET451
             return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 #else
-            return Environment.GetEnvironmentVariable("HOME") ??
-                Environment.GetEnvironmentVariable("USERPROFILE") ??
-                Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH");
+            var runtimeEnv = PlatformServices.Default.Runtime;
+            if (runtimeEnv.OperatingSystem == "Windows")
+            {
+                return Environment.GetEnvironmentVariable("USERPROFILE") ??
+                    Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH");
+            }
+            else
+            {
+                var home = Environment.GetEnvironmentVariable("HOME");
+
+                if (string.IsNullOrEmpty(home))
+                {
+                    throw new Exception("Home directory not found. The HOME environment variable is not set.");
+                }
+
+                return home;
+            }
 #endif
         }
     }
